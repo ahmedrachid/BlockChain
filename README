@@ -9,3 +9,8 @@ Members:
 How To Use:
 1- To start the miner you should execute: python miner.py
 
+Our projects contains these classes :
+- class Miner
+- class Wallet
+- class Transaction
+- class Wallet
