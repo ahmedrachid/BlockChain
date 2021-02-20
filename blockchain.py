@@ -1,11 +1,12 @@
 from block import Block
 from transaction import Transaction
-
+from hashlib import sha256
+from time import time
 class BlockChain:
-
     def __init__(self):
         self.chain = []
         self.NUMBER_TRANSACTIONS = 10
+        self.HASHING_DIFFICULTY = 4
 
     # Get length of blockchain
     def len(self):
@@ -15,6 +16,10 @@ class BlockChain:
     def addBlock(self, block):
         self.chain.append(block)
         return block
+
+    # Create New Block using Nonce and PreviousHash
+    def createBlock(self, nonce, previousHash, transactions):
+        return Block(self.len()+1, nonce, previousHash, transactions)
 
     def replaceIfNeeded(self, otherBlockchain):
         if otherBlockchain.len() > self.len():
@@ -28,14 +33,29 @@ class BlockChain:
     def last(self):
         return self.chain[self.len() - 1] if self.len() > 0 else None
 
+    # Valid proof
+    def validProof(self, previousHash, transactions, nonce):
+        hashing = str(previousHash) \
+                          + str(transactions) \
+                          + str(nonce)
+        hashing = sha256(hashing.encode('utf-8')).hexdigest()
+        return hashing[:self.HASHING_DIFFICULTY] == '0' * self.HASHING_DIFFICULTY
+
     # Check if the chain is valid or not
-    def valid_chain(self, chain):
+    def valid_chain(self):
         last_block = self.first()
         current_index = 1
         while current_index < self.len():
-            block = chain[current_index]
+            block = self.chain[current_index]
             if block.previousHash != last_block.getHash():
                 return False
+
+            transactions = block.transactions
+            nonce = block.nonce
+            previousHash = block.previousHash
+            if not self.validProof(previousHash, transactions, nonce):
+                return False
+
             last_block = block
             current_index += 1
 
@@ -53,25 +73,20 @@ class BlockChain:
             if len(lastBlock.transactions) == self.NUMBER_TRANSACTIONS:
                 self.mineBlcok(lastBlock)
 
+    # Get Reward : make a special transaction as a reward when we find a new block
+   # def getReward(self, fromWallet, toWallet, transactionAmount):
+    #    self.last().addTransaction(time(), fromWallet, toWallet, transactionAmount)
+
     # Mine the block
-    def mineBlcok(self, block):
-        if self.valid_chain(block):
-            previousHash = self.last().getHash()
+    def mineBlock(self, transactions):
+        if self.valid_chain():
+            lastBlock = self.last()
+            lastBlockHash = lastBlock.getHash()
             nonce = 0
-            s = f"{previousHash}{block.transactions}{nonce}"
-            m = sha256()
-            m.update(s)
-            res = m.digest()[2:-1]
-            while not res.startswith("0000"):
+            while not self.validProof(lastBlockHash, transactions, nonce):
                 nonce += 1
-                s = f"{previousHash}{block.transactions}{nonce}"
-                m = sha256()
-                m.update(s)
-                res = m.digest()[2:-1]
-            print("Nonce : " + nonce)
-            block.index = self.len()
-            block.previousHash = previousHash
-            self.blocks.append(block)
+            # Add reward
+            self.addBlock(self.createBlock(nonce, lastBlockHash, transactions))
 
     def toString(self):
         blocks = []

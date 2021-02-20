@@ -4,22 +4,23 @@ from time import time
 
 class Block:
 
-    def __init__(self, index, previousHash):
+    def __init__(self, index, nonce, previousHash, transactions):
 
         self.index = index
-        self.transactions = []
+        self.nonce = nonce
+        self.timestamp = time()
+        self.transactions = transactions
         self.previousHash = previousHash
         self.hash = self.getHash()
 
     def getHash(self):
         blockProperties = str(self.index) \
                           + str([i.toString() for i in self.transactions]) \
+                          + str(self.timestamp) \
+                          + str(self.nonce) \
                           + str(self.previousHash)
 
         return hashlib.sha256(blockProperties.encode('utf-8')).hexdigest()
-
-    def generateNewBlock(self):
-        return Block(self.index + 1, self.hash)
 
     def addTransaction(self, timestamp, fromWallet, toWallet, transactionAmount):
         self.transactions.append(Transaction(timestamp, fromWallet, toWallet, transactionAmount))
