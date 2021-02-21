@@ -1,13 +1,34 @@
 import socket
 import sys
+from json.encoder import JSONEncoder
+from json.decoder import JSONDecoder
 
 HOST = "127.0.0.1"
+JSON_ENCODER = JSONEncoder()
+JSON_DECODER = JSONDecoder()
 
+def send_show_blockchain(s, port):
+    message = JSON_ENCODER.encode({
+        'type': 'show-blockchain',
+        'port': port
+    })
+    print('Sending message {}'.format(message))
+    s.send(str.encode(message))
+
+def send_transaction_blockchain(s, port, amount, fromWallet, toWallet):
+    message = JSON_ENCODER.encode({
+        'type': 'make-transaction',
+        'port': port,
+        'amount': amount,
+        'fromWallet': fromWallet,
+        'toWallet': toWallet
+    })
+    print('Sending message {}'.format(message))
+    s.send(str.encode(message))
 
 def main():
     if len(sys.argv)!=2:
         print("Usage: python wallet.py port_miner")
-
     else:
         try:
             MINER_PORT = int(sys.argv[1])
@@ -18,9 +39,16 @@ def main():
                 print('Write your command please : ')
                 command = input()
                 if command == 'show':
-                    message = 'show'
-                    s.send(message.encode())
+                    send_show_blockchain(s, MINER_PORT)
 
+                if command == 'transaction':
+                    print('Write your amount please : ')
+                    amount = input()
+                    print('Write your WalletID please : ')
+                    fromWallet = input()
+                    print('Write the ClientID please : ')
+                    toWallet = input()
+                    send_transaction_blockchain(s, MINER_PORT, amount, fromWallet, toWallet)
                 if command == 'end':
                     sys.exit()
 

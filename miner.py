@@ -2,8 +2,9 @@ import socket
 import sys
 from json.encoder import JSONEncoder
 from json.decoder import JSONDecoder
-
-
+from blockchain import BlockChain
+from transaction import Transaction
+from time import time
 # Passer les params de creation de process : Port, Parent Node (Port nullable)
 
 # If Parent Node != null
@@ -49,7 +50,7 @@ def read_message(c):
     return JSON_DECODER.decode(bytes.decode())
 
 
-def handle_message(peers, server_port, message):
+def handle_message(peers, server_port, message, blockChain):
     print('Received message :')
     print(message)
     message_type = message['type']
@@ -90,6 +91,14 @@ def handle_message(peers, server_port, message):
 
         print(f"Peer {port} added to peers")
 
+    elif message_type == 'show-blockchain':
+        print(blockChain.toString())
+
+    elif message_type == 'make-transaction':
+        amount = message['amount']
+        fromWallet = message['fromWallet']
+        toWallet = message['toWallet']
+        blockChain.mineBlock([Transaction(time(), fromWallet, toWallet, amount)])
 
 def main():
     if len(sys.argv)!=3:
@@ -100,6 +109,7 @@ def main():
             PORT = int(sys.argv[1])
             PARENT_PORT = int(sys.argv[2])
             PEERS = {PORT:None}
+            blockChain = BlockChain()
 
             print('Launching miner node with port {}'.format(PORT))
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -124,7 +134,7 @@ def main():
                 s.listen(5)
                 conn, addr = s.accept()
                 message = read_message(conn)
-                handle_message(PEERS, PORT, message)
+                handle_message(PEERS, PORT, message, blockChain)
 
         except KeyboardInterrupt:
             print('Interrupt signal received, closing connections and freeing resources')

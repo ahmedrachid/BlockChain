@@ -6,7 +6,8 @@ class BlockChain:
     def __init__(self):
         self.chain = []
         self.NUMBER_TRANSACTIONS = 10
-        self.HASHING_DIFFICULTY = 4
+        self.HASHING_DIFFICULTY = 2
+        self.addBlock(Block(1,0, '00', []))
 
     # Get length of blockchain
     def len(self):
@@ -55,10 +56,9 @@ class BlockChain:
             previousHash = block.previousHash
             if not self.validProof(previousHash, transactions, nonce):
                 return False
-
+            print(last_block.toString())
             last_block = block
             current_index += 1
-
         return True
 
     # Add Transaction to the Last Block
@@ -86,6 +86,7 @@ class BlockChain:
             while not self.validProof(lastBlockHash, transactions, nonce):
                 nonce += 1
             # Add reward
+            print('Nonce:', nonce)
             self.addBlock(self.createBlock(nonce, lastBlockHash, transactions))
 
     def toString(self):
