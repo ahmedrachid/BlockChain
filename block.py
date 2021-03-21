@@ -26,10 +26,9 @@ class Block:
         self.transactions.append(Transaction(timestamp, fromWallet, toWallet, transactionAmount))
 
     # Check block's validity
-    def isValid(self, oldBlock):
-        return oldBlock.index + 1 == self.index \
-                and oldBlock.hash == self.prevHash \
-                and self.getHash() == self.hash
+    def isValid(self, oldBlock,difficulty):
+                return  oldBlock.hash == self.prevHash \
+                and  self.hash()[:difficulty] == "0" * difficulty
 
     def toString(self):
         return {

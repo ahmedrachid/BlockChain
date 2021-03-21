@@ -7,7 +7,7 @@ class BlockChain:
         self.chain = []
         self.NUMBER_TRANSACTIONS = 10
         self.HASHING_DIFFICULTY = 2
-        self.addBlock(Block(1,0, '00', []))
+        #self.addBlock(Block(1,0, '00', []))
 
     # Get length of blockchain
     def len(self):
@@ -35,8 +35,12 @@ class BlockChain:
         return self.chain[self.len() - 1] if self.len() > 0 else None
 
     # Valid proof
-    def validProof(self, previousHash, transactions, nonce):
-        hashing = str(previousHash) \
+    def validProof(self, previousHash, transactions, nonce ,oneblock=False):
+        if oneblock == True:
+            hashing = str(transactions) \
+                          + str(nonce)
+        else :
+            hashing = str(previousHash) \
                           + str(transactions) \
                           + str(nonce)
         hashing = sha256(hashing.encode('utf-8')).hexdigest()
@@ -45,6 +49,9 @@ class BlockChain:
     # Check if the chain is valid or not
     def valid_chain(self):
         last_block = self.first()
+        if not validProof(self, previousHash, transactions, nonce ,oneblock=True):
+            return False
+
         current_index = 1
         while current_index < self.len():
             block = self.chain[current_index]
@@ -78,19 +85,15 @@ class BlockChain:
     #    self.last().addTransaction(time(), fromWallet, toWallet, transactionAmount)
 
     # Mine the block
-    def mineBlock(self, transactions):
-        if self.valid_chain():
-            lastBlock = self.last()
-            lastBlockHash = lastBlock.getHash()
-            nonce = 0
-            while not self.validProof(lastBlockHash, transactions, nonce):
-                nonce += 1
-            # Add reward
-            print('Nonce:', nonce)
-            self.addBlock(self.createBlock(nonce, lastBlockHash, transactions))
-
+    
     def toString(self):
         blocks = []
         for block in self.chain:
             blocks.append(block.toString())
         return blocks
+
+    def describre(self):
+        return 
+        {"chain":self.chain,
+        "NUMBER_TRANSACTIONS":self.NUMBER_TRANSACTIONS,
+        "HASHING_DIFFICULTY":self.HASHING_DIFFICULTY}
