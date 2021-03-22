@@ -3,8 +3,12 @@ from transaction import Transaction
 from hashlib import sha256
 from time import time
 class BlockChain:
-    def __init__(self):
-        self.chain = []
+    def __init__(self, chain=[]):
+        if chain is None:
+
+            self.chain = []
+        else:
+            self.chain = chain
         self.NUMBER_TRANSACTIONS = 10
         self.HASHING_DIFFICULTY = 2
         #self.addBlock(Block(1,0, '00', []))
@@ -49,7 +53,8 @@ class BlockChain:
     # Check if the chain is valid or not
     def valid_chain(self):
         last_block = self.first()
-        if not validProof(self, previousHash, transactions, nonce ,oneblock=True):
+        if not self.validProof(last_block.previousHash, last_block.transactions, last_block.nonce ,oneblock=True):
+
             return False
 
         current_index = 1
@@ -93,4 +98,11 @@ class BlockChain:
         return blocks
 
     def describe(self):
-        return self.__dict__
+        try:
+            return {
+             'chain': [chain.describe() for chain in self.chain]
+            }
+        except:
+            return {
+                'chain': []
+            }

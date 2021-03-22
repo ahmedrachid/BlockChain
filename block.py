@@ -4,15 +4,17 @@ from time import time
 
 class Block:
 
-    def __init__(self, index, nonce, previousHash, transactions):
+    def __init__(self, index, nonce, previousHash,transactions=[],  hash=None):
 
         self.index = index
         self.nonce = nonce
         self.timestamp = time()
         self.transactions = transactions
         self.previousHash = previousHash
-        self.hash = self.getHash()
-
+        if hash is None:
+            self.hash = self.getHash()
+        else:
+            self.hash = hash
     def getHash(self):
         blockProperties = str(self.index) \
                           + str([i.toString() for i in self.transactions]) \
@@ -36,4 +38,13 @@ class Block:
             'transaction': [i.toString() for i in self.transactions],
             'previousHash': self.previousHash,
             'currentHash': self.hash
+        }
+    def describe(self):
+        return {
+            'transactions': [transactions.describe() for transactions in self.transactions],
+            'index': self.index,
+            'nonce': self.nonce,
+            'timestamp': self.timestamp,
+            'previousHash': self.previousHash,
+            'hash': self.hash
         }

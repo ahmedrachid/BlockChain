@@ -13,3 +13,6 @@ class Transaction:
             'toWallet': self.toWallet,
             'transactionAmount': self.transactionAmount,
         }
+
+    def describe(self):
+        return self.__dict__
