@@ -38,11 +38,11 @@ class BlockChain:
     def validProof(self, previousHash, transactions, nonce ,oneblock=False):
         if oneblock == True:
             hashing = str(transactions) \
-                          + str(nonce)
+                      + str(nonce)
         else :
             hashing = str(previousHash) \
-                          + str(transactions) \
-                          + str(nonce)
+                      + str(transactions) \
+                      + str(nonce)
         hashing = sha256(hashing.encode('utf-8')).hexdigest()
         return hashing[:self.HASHING_DIFFICULTY] == '0' * self.HASHING_DIFFICULTY
 
@@ -81,19 +81,16 @@ class BlockChain:
                 self.mineBlcok(lastBlock)
 
     # Get Reward : make a special transaction as a reward when we find a new block
-   # def getReward(self, fromWallet, toWallet, transactionAmount):
+    # def getReward(self, fromWallet, toWallet, transactionAmount):
     #    self.last().addTransaction(time(), fromWallet, toWallet, transactionAmount)
 
     # Mine the block
-    
+
     def toString(self):
         blocks = []
         for block in self.chain:
             blocks.append(block.toString())
         return blocks
 
-    def describre(self):
-        return 
-        {"chain":self.chain,
-        "NUMBER_TRANSACTIONS":self.NUMBER_TRANSACTIONS,
-        "HASHING_DIFFICULTY":self.HASHING_DIFFICULTY}
+    def describe(self):
+        return self.__dict__

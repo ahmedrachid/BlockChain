@@ -21,17 +21,17 @@ JSON_DECODER = JSONDecoder()
 HOST = "127.0.0.1"
 
 bc = None
-bc_l = 0 
+bc_l = 0
 
 
 def mineBlock( transactions):
-    global bc 
+    global bc
     if bc_l == 0 :
-          while not bc.validProof(None, transactions, nonce, first=True):
-                nonce += 1
-          bc.addBlock(bc.createBlock(nonce, None, transactions))
+        while not bc.validProof(None, transactions, nonce, first=True):
+            nonce += 1
+        bc.addBlock(bc.createBlock(nonce, None, transactions))
 
-          print('Nonce:', nonce)
+        print('Nonce:', nonce)
     else :
         if  bc.valid_chain():
             lastBlock = bc.last()
@@ -74,7 +74,7 @@ def send_new_peer(s, port):
 def send_blockchain(s,blockchain):
     message = JSON_ENCODER.encode({
         'type': 'init_bc',
-        'blockchain': blockchain.describre()
+        'blockchain': blockchain
     })
     print('Sending message {}'.format(message))
     s.send(str.encode(message))
@@ -89,33 +89,36 @@ def read_message(c):
 
 
 def handle_message(peers, server_port, message):
-    global bc
 
+    global bc
     print('Received message :')
     print(message)
     message_type = message['type']
 
     if message_type == 'register_miner':
         port = message['port']
+
         print('Registering miner N° {} with port {}'.format(len(peers.keys()), port))
         if port in peers:
             ps = peers[port]
+
+
         else:
             ps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             ps.connect((HOST, port))
 
             send_peers_port(ps, list(peers.keys()))
+            ps2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            ps2.connect((HOST, port))
+            send_blockchain(ps2,bc.describe())
             peers[port] = ps
-            
+
         for peer_port, peer_socket in peers.items():
             if peer_port != port and peer_port != server_port:
                 send_new_peer(peer_socket, port)
-        
-        # we send bc to the the new miner
-        print("sending block chain ")
-        ps = peers[port]
-        print(bc)
-        send_blockchain(ps,bc)
+
+
+
 
     elif message_type == 'register_peers':
         port = message['port']
@@ -136,30 +139,29 @@ def handle_message(peers, server_port, message):
 
         print(f"Peer {port} added to peers")
 
-    elif message_type == 'show-blockchain':
-        print(blockChain.toString())
-
     elif message_type == 'make-transaction':
         amount = message['amount']
         fromWallet = message['fromWallet']
         toWallet = message['toWallet']
         mineBlock([Transaction(time(), fromWallet, toWallet, amount)])
-        ## we add the transaction 
+        ## we add the transaction
     elif message_type == "init_bc":
-        bc = message["blockchain"] 
+        print('La XXXXXXX')
+        bc = message["blockchain"]
         print(bc)
-        
+
 
 def main():
 
     global bc
-    
+
     if len(sys.argv)!=3:
         print("Usage: python miner.py port miner_port")
 
     else:
         try:
-
+            bc = BlockChain()
+            print("blockcain",bc)
 
             PORT = int(sys.argv[1])
             PARENT_PORT = int(sys.argv[2])
@@ -181,10 +183,8 @@ def main():
 
                 send_mining_port(ps, PORT)
                 PEERS[PARENT_PORT] = ps
-                
-            else : 
-                bc = BlockChain()
-                print("blockcain",bc)  
+
+
 
             print('Waiting for incoming connections from child miners')
             while True:

@@ -27,7 +27,7 @@ class Block:
 
     # Check block's validity
     def isValid(self, oldBlock,difficulty):
-                return  oldBlock.hash == self.prevHash \
+        return  oldBlock.hash == self.prevHash \
                 and  self.hash()[:difficulty] == "0" * difficulty
 
     def toString(self):
