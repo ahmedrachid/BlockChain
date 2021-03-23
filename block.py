@@ -1,7 +1,7 @@
 import hashlib
 from transaction import Transaction
 from time import time
-
+from merkletools import MerkleTools
 class Block:
 
     def __init__(self, index, nonce, previousHash,transactions=[],  hash=None):
@@ -26,9 +26,6 @@ class Block:
     def getCurrentHash(self):
         return self.hash
 
-
-
-
     def addTransaction(self, timestamp, fromWallet, toWallet, transactionAmount):
         self.transactions.append(Transaction(timestamp, fromWallet, toWallet, transactionAmount))
 
@@ -43,7 +40,7 @@ class Block:
         elif toWallet is not None:
             return [transaction for transaction in self.transactions if transaction.toWallet == toWallet]
         else:
-            return self.transaction_list
+            return self.transactions
 
     def toString(self):
         return '\n\t\t index: \t\t'+ str(self.index)+ '\n'+ '\t\ttransaction: \t\t'+ str([i.toString() for i in self.transactions])+ '\n'+'\t\tpreviousHash: \t\t'+ str(self.previousHash)+ '\n'+'\t\tcurrentHash: \t\t'+ str(self.hash)
@@ -56,3 +53,18 @@ class Block:
             'previousHash': self.previousHash,
             'hash': self.hash
         }
+
+    def merkleTree(self):
+        tree = MerkleTools(hash_type="SHA256")
+        tree.add_leaf([transaction.hash() for transaction in self.transactions], True)
+        tree.make_tree()
+        return tree
+
+    def calculateMerkleRoot(self):
+        self.merkleRoot = self.merkleTree().get_merkle_root()
+
+    def transactionIndex(self, transaction):
+
+        for index, tmp in enumerate(self.transactions):
+            if transaction == tmp.hash():
+                return index

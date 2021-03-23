@@ -29,6 +29,14 @@ def send_transaction_blockchain(s, port, amount, fromWallet, toWallet, timestamp
     print('Sending message {}'.format(message))
     s.send(str.encode(message))
 
+def  check_transaction_blockchain(s, port, id):
+    message = JSON_ENCODER.encode({
+        'type': 'check-transaction',
+        'id': id
+    })
+    print('Sending message {}'.format(message))
+    s.send(str.encode(message))
+
 def main():
     if len(sys.argv)!=3:
         print("Usage: python wallet.py port_miner")
@@ -50,6 +58,10 @@ def main():
                     print('Write the ClientID please : ')
                     toWallet = input()
                     send_transaction_blockchain(s, MINER_PORT, float(amount), int(WALLET_ID), int(toWallet), time())
+                if command == 'check':
+                    print('Write the ID please: ')
+                    id = input()
+                    check_transaction_blockchain(s, MINER_PORT, str(id))
                 if command == 'end':
                     sys.exit()  
                 

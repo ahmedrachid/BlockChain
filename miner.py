@@ -5,7 +5,7 @@ from json.decoder import JSONDecoder
 from blockchain import BlockChain
 from block import Block
 from transaction import Transaction
-from transaction import Transaction
+from merkleproof import MerkleProof
 from time import time
 import threading
 import uuid
@@ -52,6 +52,8 @@ def mineBlock(transactions):
             #transactions.append(Transaction(time(), 'SYSTEM', ADDRESS_WALLET, 1))
             bc.addBlock(bc.createBlock(nonce=nonce, previousHash=lastBlockHash, transactions=transactions))
             print('Here2')
+    for tmp in transactions:
+        print('Transaction {} has been added to the block', format(tmp.hash()))
     bc_l += 1
 
 def send_show_blockchain(s, port):
@@ -152,20 +154,20 @@ def handle_message(peers, server_port, message,s_sender):
 
         print('Registering miner N° {} with port {}'.format(len(peers.keys()), port))
         #if port in peers:
-            #ps = peers[port]
+        #ps = peers[port]
 
         #else:
         #send infotmation about the network to the new miner
         ps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ps.connect((HOST, port))
-        
+
         send_peers_port(ps, list(peers.keys()))
         ps.close()
 
         ps2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ps2.connect((HOST, port))
         send_blockchain(ps2,bc.describe())
-        peers[port] = ps   
+        peers[port] = ps
 
 
         #no need for peer_socket !!! we crreate it each time
@@ -175,12 +177,12 @@ def handle_message(peers, server_port, message,s_sender):
                 pss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 pss.connect((HOST, peer_port))
                 send_new_peer(pss, port)
-                
+
     elif message_type == 'register_peers':
         port = message['port']
         for peer_port in port:
             if peer_port != server_port and peer_port not in peers:
-                
+
                 peers[peer_port]=None
 
                 print(f"Peer {peer_port} added")
@@ -226,6 +228,7 @@ def handle_message(peers, server_port, message,s_sender):
                 print('Valid transactions')
                 print(mine_list_tmp)
                 if (len(mine_list_tmp) > 0):
+
                     mineBlock(mine_list_tmp)
                     for peer_port, peer_socket in peers.items():
                         if peer_port != server_port:
@@ -239,7 +242,7 @@ def handle_message(peers, server_port, message,s_sender):
         received_bc = message["blockchain"]
         bc = BlockChain(chain=received_bc['chain'])
         print(bc.toString())
-         
+
 
     elif message_type == 'broadcast_blockchain':
         sender_port = message["sender_port"]
@@ -263,9 +266,26 @@ def handle_message(peers, server_port, message,s_sender):
                         broadcast_blockchain(pss, bc.describe(),server_port)
         else:
             print("Blockchain already updated")
-    
-    elif message_type == 'check_transaction':
-            return 
+
+    elif message_type == 'check-transaction':
+        id_transaction = message['id']
+        #transaction_tmp = Transaction(timestamp=timestamp, fromWallet=int(fromWallet), toWallet=int(toWallet), transactionAmount=float(amount))
+        block = bc.getBlock(id_transaction)
+        block.calculateMerkleRoot()
+        print(block)
+        if block is None:
+            proof = MerkleProof(not_found=True)
+        else:
+            print(block.describe())
+            transaction_position = block.transactionIndex(id_transaction)
+            proof = MerkleProof(root=block.merkleRoot,  hashList=block.merkleTree().get_proof(transaction_position))
+
+        print('Proof:', proof.describe())
+        print(proof.inMerkleTree(transaction_position))
+
+
+#self.channel_manager.answer_message(channel, response_message)
+
 def main():
 
     global bc
@@ -312,7 +332,7 @@ def main():
                 #handle_message(PEERS, PORT, message)
                 threading.Thread(target=handle_message(PEERS, PORT, message,conn))
                 c = c + 1
-                
+
         except KeyboardInterrupt:
             print('Interrupt signal received, closing connections and freeing resources')
             s.close()

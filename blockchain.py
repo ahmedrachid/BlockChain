@@ -58,7 +58,7 @@ class BlockChain:
 
             return False
 
-        current_index = 1   
+        current_index = 1
         while current_index < self.len():
             block = self.chain[current_index]
             #import pdb;pdb.set_trace()
@@ -79,7 +79,7 @@ class BlockChain:
             if not (hashing[:self.HASHING_DIFFICULTY] == '0' * self.HASHING_DIFFICULTY or hashing != block.getCurrentHash()):
                 print("reason3")
                 return False
-                
+
             print(last_block.toString())
             last_block = block
             current_index += 1
@@ -130,7 +130,7 @@ class BlockChain:
     def describe(self):
         try:
             return {
-             'chain': [chain.describe() for chain in self.chain]
+                'chain': [chain.describe() for chain in self.chain]
             }
         except:
             return {
@@ -139,3 +139,9 @@ class BlockChain:
     def hash(self):
         return sha256(str(self.describe()).encode('utf-8')).hexdigest()
 
+    def getBlock(self, transaction):
+        for block in self.chain:
+            for tmp in block.transactionsList():
+                if tmp.hash() == transaction:
+                    return block
+        return None
