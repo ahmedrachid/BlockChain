@@ -8,6 +8,7 @@ from transaction import Transaction
 from transaction import Transaction
 from time import time
 import threading
+import uuid
 import pickle
 # Passer les params de creation de process : Port, Parent Node (Port nullable)
 
@@ -26,7 +27,7 @@ lock = threading.Lock()
 bc = BlockChain()
 bc_l = 0
 PORT = None
-
+ADDRESS_WALLET = uuid.uuid4().hex
 transction_tbd = []
 
 def mineBlock(transactions):
@@ -34,6 +35,9 @@ def mineBlock(transactions):
     global bc_l
     nonce = 1
     if bc_l == 0 :
+        transactions.append(Transaction(time(), 'SYSTEM', 'a', 7))
+        transactions.append(Transaction(time(), 'SYSTEM', 'b', 10))
+        transactions.append(Transaction(time(), 'SYSTEM', 'c', 2))
         while not bc.validProof(None, transactions, nonce, oneblock=True):
             nonce += 1
         bc.addBlock(bc.createBlock(nonce, None, transactions))
@@ -46,6 +50,7 @@ def mineBlock(transactions):
             while not bc.validProof(lastBlockHash, transactions, nonce):
                 nonce += 1
             # Add reward
+            transactions.append(Transaction(time(), 'SYSTEM', ADDRESS_WALLET, 1))
             bc.addBlock(bc.createBlock(nonce, lastBlockHash, transactions))
     bc_l += 1
 
@@ -180,7 +185,6 @@ def handle_message(peers, server_port, message):
                 print(f"Peer {peer_port} added")
 
     elif message_type == 'new_peer':
-        print("handling new peer")
         port = message['port']
         peers[port] = None
 

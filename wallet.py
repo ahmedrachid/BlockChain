@@ -3,6 +3,7 @@ import sys
 from json.encoder import JSONEncoder
 from json.decoder import JSONDecoder
 from time import time
+
 HOST = "127.0.0.1"
 JSON_ENCODER = JSONEncoder()
 JSON_DECODER = JSONDecoder()

@@ -32,6 +32,14 @@ class Block:
         return  oldBlock.hash == self.prevHash \
                 and  self.hash()[:difficulty] == "0" * difficulty
 
+    def transactionsList(self, fromWallet=None, toWallet=None):
+        if fromWallet is not None:
+            return [transaction for transaction in self.transactions if transaction.fromWallet == fromWallet]
+        elif toWallet is not None:
+            return [transaction for transaction in self.transactions if transaction.toWallet == toWallet]
+        else:
+            return self.transaction_list
+
     def toString(self):
         return str({
             'index': self.index,
