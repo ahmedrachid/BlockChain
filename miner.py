@@ -134,11 +134,11 @@ def send_transaction_blockchain(s, port, amount, fromWallet, toWallet):
     s.send(str.encode(message))
 
 def read_message(c):
-    bytes = c.recv(1024)
+    bytes = c.recv(4096)
     return JSON_DECODER.decode(bytes.decode())
 
 
-def handle_message(peers, server_port, message):
+def handle_message(peers, server_port, message,s_sender):
 
     global bc
     global PORT
@@ -263,7 +263,9 @@ def handle_message(peers, server_port, message):
                         broadcast_blockchain(pss, bc.describe(),server_port)
         else:
             print("Blockchain already updated")
-
+    
+    elif message_type == 'check_transaction':
+            return 
 def main():
 
     global bc
@@ -308,7 +310,7 @@ def main():
                 #import pdb;pdb.set_trace()
                 message = read_message(conn)
                 #handle_message(PEERS, PORT, message)
-                threading.Thread(target=handle_message(PEERS, PORT, message))
+                threading.Thread(target=handle_message(PEERS, PORT, message,conn))
                 c = c + 1
                 
         except KeyboardInterrupt:

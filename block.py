@@ -21,12 +21,13 @@ class Block:
                           + str(self.timestamp) \
                           + str(self.nonce) \
                           + str(self.previousHash)
-    def getCurrentHash():
-        return 
-
-
-
         return hashlib.sha256(blockProperties.encode('utf-8')).hexdigest()
+
+    def getCurrentHash(self):
+        return self.hash
+
+
+
 
     def addTransaction(self, timestamp, fromWallet, toWallet, transactionAmount):
         self.transactions.append(Transaction(timestamp, fromWallet, toWallet, transactionAmount))
@@ -45,7 +46,7 @@ class Block:
             return self.transaction_list
 
     def toString(self):
-        return '\n\t\t index: \t\t'+ str(self.index)+ '\n'+ '\t\ttransaction: \t\t'+ str([i.toString() for i in self.transactions])+ '\n'+'\t\tpreviousHash: \t\t'+ str(self.previousHash)+ '\n'+'\t\tcurrentHash: \t\t'+ self.hash
+        return '\n\t\t index: \t\t'+ str(self.index)+ '\n'+ '\t\ttransaction: \t\t'+ str([i.toString() for i in self.transactions])+ '\n'+'\t\tpreviousHash: \t\t'+ str(self.previousHash)+ '\n'+'\t\tcurrentHash: \t\t'+ str(self.hash)
 
     def describe(self):
         return {

@@ -70,9 +70,16 @@ class BlockChain:
             transactions = block.transactions
             nonce = block.nonce
             previousHash = block.previousHash
-            if not self.validProof(previousHash, transactions, nonce):
+            # verify if the current hash was calculated with actual nonce,transactions
+            #
+            hashing = str(previousHash) \
+                      + str(transactions) \
+                      + str(nonce)
+            hashing = sha256(hashing.encode('utf-8')).hexdigest()
+            if not (hashing[:self.HASHING_DIFFICULTY] == '0' * self.HASHING_DIFFICULTY or hashing != block.getCurrentHash()):
                 print("reason3")
                 return False
+                
             print(last_block.toString())
             last_block = block
             current_index += 1
