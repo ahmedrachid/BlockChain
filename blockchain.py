@@ -41,32 +41,37 @@ class BlockChain:
     # Valid proof
     def validProof(self, previousHash, transactions, nonce ,oneblock=False):
         if oneblock == True:
-            hashing = str(transactions) \
+            hashing = str([t.describe() for t in transactions]) \
                       + str(nonce)
         else :
             hashing = str(previousHash) \
                       + str(transactions) \
                       + str(nonce)
         hashing = sha256(hashing.encode('utf-8')).hexdigest()
+        print("hashing:",hashing)
         return hashing[:self.HASHING_DIFFICULTY] == '0' * self.HASHING_DIFFICULTY
 
     # Check if the chain is valid or not
     def valid_chain(self):
         last_block = self.first()
         if not self.validProof(last_block.previousHash, last_block.transactions, last_block.nonce ,oneblock=True):
+            print("reason0")
 
             return False
 
-        current_index = 1
+        current_index = 1   
         while current_index < self.len():
             block = self.chain[current_index]
             if block.previousHash != last_block.getHash():
+                print("reason1")
                 return False
 
             transactions = block.transactions
             nonce = block.nonce
             previousHash = block.previousHash
             if not self.validProof(previousHash, transactions, nonce):
+                print("reason1")
+
                 return False
             print(last_block.toString())
             last_block = block

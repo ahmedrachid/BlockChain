@@ -14,6 +14,7 @@ def send_show_blockchain(s, port):
     })
     print('Sending message {}'.format(message))
     s.send(str.encode(message))
+    s.close()
 
 def send_transaction_blockchain(s, port, amount, fromWallet, toWallet):
     message = JSON_ENCODER.encode({
@@ -31,17 +32,19 @@ def main():
         print("Usage: python wallet.py port_miner")
     else:
         try:
-            MINER_PORT = int(sys.argv[1])
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect((HOST, MINER_PORT))
+           
 
             while True:
+                MINER_PORT = int(sys.argv[1])
+
                 print('Write your command please : ')
                 command = input()
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((HOST, MINER_PORT))
                 if command == 'show':
                     send_show_blockchain(s, MINER_PORT)
-
-                if command == 'transaction':
+                    s.close()
+                if command == 'transaction':    
                     print('Write your amount please : ')
                     amount = input()
                     print('Write your WalletID please : ')
@@ -50,7 +53,8 @@ def main():
                     toWallet = input()
                     send_transaction_blockchain(s, MINER_PORT, amount, fromWallet, toWallet)
                 if command == 'end':
-                    sys.exit()
+                    sys.exit()  
+                
 
         except KeyboardInterrupt:
             print('Interrupt signal received, closing connections and freeing resources')
