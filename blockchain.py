@@ -48,7 +48,6 @@ class BlockChain:
                       + str(transactions) \
                       + str(nonce)
         hashing = sha256(hashing.encode('utf-8')).hexdigest()
-        print("hashing:",hashing)
         return hashing[:self.HASHING_DIFFICULTY] == '0' * self.HASHING_DIFFICULTY
 
     # Check if the chain is valid or not
@@ -97,10 +96,10 @@ class BlockChain:
     # Mine the block
 
     def toString(self):
-        blocks = []
+        s = ''
         for block in self.chain:
-            blocks.append(block.toString())
-        return blocks
+            s+=str(block.toString())+'\n'
+        return s
 
     def describe(self):
         try:

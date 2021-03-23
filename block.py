@@ -33,12 +33,12 @@ class Block:
                 and  self.hash()[:difficulty] == "0" * difficulty
 
     def toString(self):
-        return {
+        return str({
             'index': self.index,
             'transaction': [i.toString() for i in self.transactions],
             'previousHash': self.previousHash,
             'currentHash': self.hash
-        }
+        })
     def describe(self):
         return {
             'transactions': [transactions.describe() for transactions in self.transactions],

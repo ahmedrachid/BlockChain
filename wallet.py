@@ -2,7 +2,7 @@ import socket
 import sys
 from json.encoder import JSONEncoder
 from json.decoder import JSONDecoder
-
+from time import time
 HOST = "127.0.0.1"
 JSON_ENCODER = JSONEncoder()
 JSON_DECODER = JSONDecoder()
@@ -16,13 +16,14 @@ def send_show_blockchain(s, port):
     s.send(str.encode(message))
     s.close()
 
-def send_transaction_blockchain(s, port, amount, fromWallet, toWallet):
+def send_transaction_blockchain(s, port, amount, fromWallet, toWallet, timestamp):
     message = JSON_ENCODER.encode({
         'type': 'make-transaction',
         'port': port,
         'amount': amount,
         'fromWallet': fromWallet,
-        'toWallet': toWallet
+        'toWallet': toWallet,
+        'timestamp': timestamp
     })
     print('Sending message {}'.format(message))
     s.send(str.encode(message))
@@ -51,7 +52,7 @@ def main():
                     fromWallet = input()
                     print('Write the ClientID please : ')
                     toWallet = input()
-                    send_transaction_blockchain(s, MINER_PORT, amount, fromWallet, toWallet)
+                    send_transaction_blockchain(s, MINER_PORT, amount, fromWallet, toWallet, time())
                 if command == 'end':
                     sys.exit()  
                 
