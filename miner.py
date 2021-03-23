@@ -34,20 +34,23 @@ def mineBlock(transactions):
     global bc
     global bc_l
     nonce = 1
+    print(bc_l)
     if bc_l == 0 :
+        print('len = 0')
         while not bc.validProof(None, transactions, nonce, oneblock=True):
             nonce += 1
-        bc.addBlock(bc.createBlock(nonce, None, transactions))
+        bc.addBlock(bc.createBlock(nonce=nonce, previousHash=None, transactions=transactions))
     else :
         if  bc.valid_chain():
             lastBlock = bc.last()
             lastBlockHash = lastBlock.getHash()
             nonce = 0
+            print('Previoushash', lastBlockHash)
             while not bc.validProof(lastBlockHash, transactions, nonce):
                 nonce += 1
             # Add reward
-            transactions.append(Transaction(time(), 'SYSTEM', ADDRESS_WALLET, 1))
-            bc.addBlock(bc.createBlock(nonce, lastBlockHash, transactions))
+            #transactions.append(Transaction(time(), 'SYSTEM', ADDRESS_WALLET, 1))
+            bc.addBlock(bc.createBlock(nonce=nonce, previousHash=lastBlockHash, transactions=transactions))
             print('Here2')
     bc_l += 1
 
@@ -106,6 +109,7 @@ def broadcast_blockchain(s,blockchain,sender_port):
         'sender_port':sender_port
     })
     print('Broadcasting Blockchain')
+
     s.send(str.encode(message))
     s.close()
 
@@ -206,6 +210,7 @@ def handle_message(peers, server_port, message):
             print('transaction in')
             transction_tbd.append(transaction_tmp)
             #we check if we have more than 3 transactions to be done:
+            print('length transactions:', transction_tbd)
             if(len(transction_tbd) >= 2 ):
                 # maybe we need lock
                 mine_list = transction_tbd[-2:]
@@ -220,12 +225,15 @@ def handle_message(peers, server_port, message):
                         mine_list_tmp.append(transaction_mine)
                 print('Valid transactions')
                 print(mine_list_tmp)
-                mineBlock(mine_list_tmp)
-                for peer_port, peer_socket in peers.items():
-                    if peer_port != server_port:
-                        ps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        ps.connect((HOST, peer_port))
-                        broadcast_blockchain(ps, bc.describe(),server_port)
+                if (len(mine_list_tmp) > 0):
+                    mineBlock(mine_list_tmp)
+                    for peer_port, peer_socket in peers.items():
+                        if peer_port != server_port:
+                            ps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                            ps.connect((HOST, peer_port))
+                            print('Broadcasting our blockchain')
+                            print(bc.toString())
+                            broadcast_blockchain(ps, bc.describe(),server_port)
             ## we add the transaction
     elif message_type == "init_bc":
         received_bc = message["blockchain"]
@@ -238,6 +246,11 @@ def handle_message(peers, server_port, message):
         received_bc = message['blockchain']
         received_bc = BlockChain(chain=[Block(index=block['index'], nonce=block['nonce'], hash=block['hash'], previousHash=block['previousHash'], transactions=[Transaction(timestamp=transaction['timestamp'], fromWallet=transaction['fromWallet'], toWallet=transaction['toWallet'], transactionAmount=transaction['transactionAmount']) for transaction in block['transactions']]) for block in received_bc['chain']])
         if(received_bc.hash() !=bc.hash()):
+
+            print('Valid chain?:', received_bc.valid_chain())
+            print('Length received:', len(received_bc.chain))
+            print('Length actual:', len(bc.chain))
+            print('Received chain:\n', received_bc.toString())
             if received_bc.valid_chain() and len(received_bc.chain) > len(bc.chain):
                 print('New blockchain')
                 print(received_bc.toString())

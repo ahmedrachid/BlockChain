@@ -70,7 +70,6 @@ class BlockChain:
             previousHash = block.previousHash
             if not self.validProof(previousHash, transactions, nonce):
                 print("reason1")
-
                 return False
             print(last_block.toString())
             last_block = block
@@ -106,17 +105,17 @@ class BlockChain:
         for block in self.chain:
             for receivedTransaction in block.transactionsList(fromWallet=transaction.fromWallet):
                 print('from', credit)
-                credit += receivedTransaction.transactionAmount
+                credit -= receivedTransaction.transactionAmount
             for sendingTransaction in block.transactionsList(toWallet=transaction.fromWallet):
                 print('to', credit)
-                credit -= sendingTransaction.transactionAmount
+                credit += sendingTransaction.transactionAmount
         print('Credit:', credit)
         return credit > transaction.transactionAmount
 
     def toString(self):
-        s = ''
+        s = 'Blockchain: \n'
         for block in self.chain:
-            s+=str(block.toString())+'\n'
+            s+='\t Block: '+str(block.toString())+'\n'
         return s
 
     def describe(self):

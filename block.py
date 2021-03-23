@@ -41,12 +41,8 @@ class Block:
             return self.transaction_list
 
     def toString(self):
-        return str({
-            'index': self.index,
-            'transaction': [i.toString() for i in self.transactions],
-            'previousHash': self.previousHash,
-            'currentHash': self.hash
-        })
+        return '\n\t\t index: \t\t'+ str(self.index)+ '\n'+ '\t\ttransaction: \t\t'+ str([i.toString() for i in self.transactions])+ '\n'+'\t\tpreviousHash: \t\t'+ str(self.previousHash)+ '\n'+'\t\tcurrentHash: \t\t'+ self.hash
+
     def describe(self):
         return {
             'transactions': [transactions.describe() for transactions in self.transactions],
