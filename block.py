@@ -21,6 +21,10 @@ class Block:
                           + str(self.timestamp) \
                           + str(self.nonce) \
                           + str(self.previousHash)
+    def getCurrentHash():
+        return 
+
+
 
         return hashlib.sha256(blockProperties.encode('utf-8')).hexdigest()
 

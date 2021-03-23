@@ -61,15 +61,17 @@ class BlockChain:
         current_index = 1   
         while current_index < self.len():
             block = self.chain[current_index]
-            if block.previousHash != last_block.getHash():
-                print("reason1")
+            #import pdb;pdb.set_trace()
+
+            if block.previousHash != last_block.getCurrentHash():
+                print("reason2")
                 return False
 
             transactions = block.transactions
             nonce = block.nonce
             previousHash = block.previousHash
             if not self.validProof(previousHash, transactions, nonce):
-                print("reason1")
+                print("reason3")
                 return False
             print(last_block.toString())
             last_block = block
