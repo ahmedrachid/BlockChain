@@ -44,7 +44,6 @@ class Block:
             'transactions': [transactions.describe() for transactions in self.transactions],
             'index': self.index,
             'nonce': self.nonce,
-            'timestamp': self.timestamp,
             'previousHash': self.previousHash,
             'hash': self.hash
         }

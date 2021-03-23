@@ -111,3 +111,6 @@ class BlockChain:
             return {
                 'chain': []
             }
+    def hash(self):
+        return sha256(str(self.describe()).encode('utf-8')).hexdigest()
+

@@ -25,7 +25,9 @@ HOST = "127.0.0.1"
 lock = threading.Lock()
 bc = BlockChain()
 bc_l = 0
+PORT = None
 
+transction_tbd = []
 
 def mineBlock( transactions):
     global bc
@@ -122,6 +124,7 @@ def read_message(c):
 def handle_message(peers, server_port, message):
 
     global bc
+    global PORT
     print('Received message :')
     print(message)
     message_type = message['type']
@@ -134,9 +137,10 @@ def handle_message(peers, server_port, message):
             #ps = peers[port]
 
         #else:
+        #send infotmation about the network to the new miner
         ps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ps.connect((HOST, port))
-
+        
         send_peers_port(ps, list(peers.keys()))
         ps.close()
 
@@ -146,51 +150,56 @@ def handle_message(peers, server_port, message):
         send_blockchain(ps2,bc.describe())
         peers[port] = ps   
         print("finished")
-        return 
+         
 
-        # no need for peer_socket !!! we crreate it each time
-        #for peer_port, peer_socket in peers.items():
-            #if peer_port != port and peer_port != server_port:
+        #no need for peer_socket !!! we crreate it each time
+        print(peers.keys())
+        for peer_port, peer_socket in peers.items():
+            if peer_port != port and peer_port != server_port:
+                print("sending from:",server_port,"to:",peer_port)
                  
-                #pss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                #pss.connect((HOST, peer_port))
-                #send_new_peer(pss, port)
+                pss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                pss.connect((HOST, peer_port))
+                send_new_peer(pss, port)
                 
     elif message_type == 'register_peers':
         port = message['port']
         for peer_port in port:
             if peer_port != server_port and peer_port not in peers:
-                ps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                ps.connect((HOST,peer_port))
-
-                #peers[peer_port]=ps
+                
+                peers[peer_port]=None
 
                 print(f"Peer {peer_port} added")
 
     elif message_type == 'new_peer':
         print("handling new peer")
         port = message['port']
-        ps=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ps.connect((HOST, port))
-        #peers[port]=ps
+        peers[port] = None
+
 
         print(f"Peer {port} added to peers")
 
     elif message_type == 'make-transaction':
+         
         amount = message['amount']
         fromWallet = message['fromWallet']
         toWallet = message['toWallet']
-        print(message_type)
-        print("broadcatsing source:")
-        #threading.Thread(target=mineBlock([Transaction(time(), fromWallet, toWallet, amount)]), ).start()
-        mineBlock([Transaction(time(), fromWallet, toWallet, amount)])
-        for peer_port, peer_socket in peers.items():
-            print("going to broadcast")
-            if peer_port != server_port:
-                print("broadcating to :",peer_port)
-                ps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                ps.connect((HOST, peer_port))
-                broadcast_blockchain(ps, bc.describe(),server_port)
+        transction_tbd.append(Transaction(time(), fromWallet, toWallet, amount))
+        #we check if we have more than 3 transactions to be done:
+        if(len(transction_tbd) >= 3 ):
+            # maybe we need lock 
+            mine_list = transction_tbd[-3:]
+            transction_tbd = transction_tbd[:-3]
+            #threading.Thread(target=mineBlock([Transaction(time(), fromWallet, toWallet, amount)]), ).start()
+            mineBlock(mine_list)
+
+            for peer_port, peer_socket in peers.items():
+                print("going to broadcast")
+                if peer_port != server_port:
+                    print("broadcating to :",peer_port)
+                    ps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    ps.connect((HOST, peer_port))
+                    broadcast_blockchain(ps, bc.describe(),server_port)
 
         ## we add the transaction
     elif message_type == "init_bc":
@@ -198,35 +207,40 @@ def handle_message(peers, server_port, message):
         print(received_bc)
         bc = BlockChain(chain=received_bc['chain'])
         print(bc.describe())
-        return 
+         
 
     elif message_type == 'broadcast_blockchain':
         print("broadcatsing after reception:")
-
+        print("compare with actual bc:")
+      
         sender_port = message["sender_port"]
         received_bc = message['blockchain']
         received_bc = BlockChain(chain=[Block(index=block['index'], nonce=block['nonce'], hash=block['hash'], previousHash=block['previousHash'], transactions=[Transaction(timestamp=transaction['timestamp'], fromWallet=transaction['fromWallet'], toWallet=transaction['toWallet'], transactionAmount=transaction['transactionAmount']) for transaction in block['transactions']]) for block in received_bc['chain']])
-        print(received_bc.describe())
-        print('Valid or no?: ', received_bc.valid_chain())
-        print('Length received:', len(received_bc.chain))
-        print('Length actual:', len(bc.chain))
-        print('sender:', sender_port)
+        if(received_bc.hash() !=bc.hash()):
+            print("different bc received")
+            print(received_bc.describe())
+            print('Valid or no?: ', received_bc.valid_chain())
+            print('Length received:', len(received_bc.chain))
+            print('Length actual:', len(bc.chain))
+            print('sender:', sender_port)
 
-        if received_bc.valid_chain() and len(received_bc.chain) > len(bc.chain):
-            print('New blockchain')
-            bc = received_bc
-            for peer_port, peer_socket in peers.items():
-                if peer_port != server_port and peer_port!= sender_port:
-                    print("broadcast to :",peer_port)
-                    pss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    pss.connect((HOST, peer_port))
+            if received_bc.valid_chain() and len(received_bc.chain) > len(bc.chain):
+                print('New blockchain')
+                bc = received_bc
+                for peer_port, peer_socket in peers.items():
+                    if peer_port != server_port and peer_port!= sender_port:
+                        print("broadcast to :",peer_port)
+                        pss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        pss.connect((HOST, peer_port))
 
-                    broadcast_blockchain(pss, bc.describe(),server_port)
-
+                        broadcast_blockchain(pss, bc.describe(),server_port)
+        else:
+            print("blockchain already updated")
 
 def main():
 
     global bc
+    global PORT
 
     if len(sys.argv)!=3:
         print("Usage: python miner.py port miner_port")
@@ -266,12 +280,14 @@ def main():
                 print("c:",c)
                 #print('List of peers:', PEERS)
                 conn, addr = s.accept()
-                import pdb;pdb.set_trace()
+                #import pdb;pdb.set_trace()
                 print ('Connected with ' + addr[0] + ':' + str(addr[1]))    
                 print("je fais rien !!")
                 message = read_message(conn)
                 print("read")
                 handle_message(PEERS, PORT, message)
+
+                #handle_message(PEERS, PORT, message)
                 c = c + 1
                 
         except KeyboardInterrupt:
