@@ -96,16 +96,21 @@ class BlockChain:
     # Mine the block
 
     def validTransaction(self, transaction: Transaction):
+        print(transaction.toString())
+        print('-----------')
         if transaction.transactionAmount <= 0:
             return False
-        if transaction.fromWallet == 'SYSTEM' and transaction.transactionAmount > 0:
+        if transaction.fromWallet == 1 and transaction.transactionAmount > 0:
             return True
         credit = 0
         for block in self.chain:
             for receivedTransaction in block.transactionsList(fromWallet=transaction.fromWallet):
+                print('from', credit)
                 credit += receivedTransaction.transactionAmount
             for sendingTransaction in block.transactionsList(toWallet=transaction.fromWallet):
+                print('to', credit)
                 credit -= sendingTransaction.transactionAmount
+        print('Credit:', credit)
         return credit > transaction.transactionAmount
 
     def toString(self):

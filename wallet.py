@@ -30,15 +30,13 @@ def send_transaction_blockchain(s, port, amount, fromWallet, toWallet, timestamp
     s.send(str.encode(message))
 
 def main():
-    if len(sys.argv)!=2:
+    if len(sys.argv)!=3:
         print("Usage: python wallet.py port_miner")
     else:
         try:
-           
-
             while True:
                 MINER_PORT = int(sys.argv[1])
-
+                WALLET_ID = int(sys.argv[2])
                 print('Write your command please : ')
                 command = input()
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,14 +44,12 @@ def main():
                 if command == 'show':
                     send_show_blockchain(s, MINER_PORT)
                     s.close()
-                if command == 'transaction':    
+                if command == 'transaction':
                     print('Write your amount please : ')
                     amount = input()
-                    print('Write your WalletID please : ')
-                    fromWallet = input()
                     print('Write the ClientID please : ')
                     toWallet = input()
-                    send_transaction_blockchain(s, MINER_PORT, amount, fromWallet, toWallet, time())
+                    send_transaction_blockchain(s, MINER_PORT, float(amount), int(WALLET_ID), int(toWallet), time())
                 if command == 'end':
                     sys.exit()  
                 

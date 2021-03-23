@@ -35,13 +35,9 @@ def mineBlock(transactions):
     global bc_l
     nonce = 1
     if bc_l == 0 :
-        transactions.append(Transaction(time(), 'SYSTEM', 'a', 7))
-        transactions.append(Transaction(time(), 'SYSTEM', 'b', 10))
-        transactions.append(Transaction(time(), 'SYSTEM', 'c', 2))
         while not bc.validProof(None, transactions, nonce, oneblock=True):
             nonce += 1
         bc.addBlock(bc.createBlock(nonce, None, transactions))
-
     else :
         if  bc.valid_chain():
             lastBlock = bc.last()
@@ -52,6 +48,7 @@ def mineBlock(transactions):
             # Add reward
             transactions.append(Transaction(time(), 'SYSTEM', ADDRESS_WALLET, 1))
             bc.addBlock(bc.createBlock(nonce, lastBlockHash, transactions))
+            print('Here2')
     bc_l += 1
 
 def send_show_blockchain(s, port):
@@ -191,32 +188,44 @@ def handle_message(peers, server_port, message):
 
         print(f"Peer {port} added to peers")
 
+    elif message_type == 'show-blockchain':
+        print(bc.toString())
+
     elif message_type == 'make-transaction':
 
         amount = message['amount']
         fromWallet = message['fromWallet']
         toWallet = message['toWallet']
         timestamp = message['timestamp']
-        transaction_tmp = Transaction(timestamp, fromWallet, toWallet, amount)
+        transaction_tmp = Transaction(timestamp=timestamp, fromWallet=int(fromWallet), toWallet=int(toWallet), transactionAmount=float(amount))
         transaction_in = False
         for i in transction_tbd:
             if i.hash()== transaction_tmp.hash():
                 transaction_in = True
         if transaction_in == False:
+            print('transaction in')
             transction_tbd.append(transaction_tmp)
             #we check if we have more than 3 transactions to be done:
-            if(len(transction_tbd) >= 3 ):
+            if(len(transction_tbd) >= 2 ):
                 # maybe we need lock
-                mine_list = transction_tbd[-3:]
-                transction_tbd = transction_tbd[:-3]
+                mine_list = transction_tbd[-2:]
+                transction_tbd = transction_tbd[:-2]
                 #threading.Thread(target=mineBlock([Transaction(time(), fromWallet, toWallet, amount)]), ).start()
-                mineBlock(mine_list)
+                mine_list_tmp = []
+                print('Mine list', mine_list)
+                print('Valid or not ? ')
+                for transaction_mine in mine_list:
+                    print(bc.validTransaction(transaction_mine))
+                    if bc.validTransaction(transaction_mine):
+                        mine_list_tmp.append(transaction_mine)
+                print('Valid transactions')
+                print(mine_list_tmp)
+                mineBlock(mine_list_tmp)
                 for peer_port, peer_socket in peers.items():
                     if peer_port != server_port:
                         ps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         ps.connect((HOST, peer_port))
                         broadcast_blockchain(ps, bc.describe(),server_port)
-
             ## we add the transaction
     elif message_type == "init_bc":
         received_bc = message["blockchain"]
