@@ -54,7 +54,6 @@ class BlockChain:
     def valid_chain(self):
         last_block = self.first()
         if not self.validProof(last_block.previousHash, last_block.transactions, last_block.nonce ,oneblock=True):
-            print("reason0")
 
             return False
 
@@ -64,7 +63,6 @@ class BlockChain:
             #import pdb;pdb.set_trace()
 
             if block.previousHash != last_block.getCurrentHash():
-                print("reason2")
                 return False
 
             transactions = block.transactions
@@ -77,10 +75,8 @@ class BlockChain:
                       + str(nonce)
             hashing = sha256(hashing.encode('utf-8')).hexdigest()
             if not (hashing[:self.HASHING_DIFFICULTY] == '0' * self.HASHING_DIFFICULTY or hashing != block.getCurrentHash()):
-                print("reason3")
                 return False
 
-            print(last_block.toString())
             last_block = block
             current_index += 1
         return True
@@ -104,8 +100,6 @@ class BlockChain:
     # Mine the block
 
     def validTransaction(self, transaction: Transaction):
-        print(transaction.toString())
-        print('-----------')
         if transaction.transactionAmount <= 0:
             return False
         if transaction.fromWallet == 1 and transaction.transactionAmount > 0:
@@ -113,12 +107,9 @@ class BlockChain:
         credit = 0
         for block in self.chain:
             for receivedTransaction in block.transactionsList(fromWallet=transaction.fromWallet):
-                print('from', credit)
                 credit -= receivedTransaction.transactionAmount
             for sendingTransaction in block.transactionsList(toWallet=transaction.fromWallet):
-                print('to', credit)
                 credit += sendingTransaction.transactionAmount
-        print('Credit:', credit)
         return credit > transaction.transactionAmount
 
     def toString(self):

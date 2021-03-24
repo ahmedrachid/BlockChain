@@ -45,26 +45,34 @@ def main():
             while True:
                 MINER_PORT = int(sys.argv[1])
                 WALLET_ID = int(sys.argv[2])
-                print('Write your command please : ')
-                command = input()
+                cmd = int(input(
+                    """
+    1. show blockchain
+    2. send transaction
+    3. check transaction
+    4. end
+    Choice :
+    """
+                ))
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect((HOST, MINER_PORT))
-                if command == 'show':
+                if cmd == 1:
                     send_show_blockchain(s, MINER_PORT)
                     s.close()
-                if command == 'transaction':
+                if cmd == 2:
                     print('Write your amount please : ')
                     amount = input()
                     print('Write the ClientID please : ')
                     toWallet = input()
                     send_transaction_blockchain(s, MINER_PORT, float(amount), int(WALLET_ID), int(toWallet), time())
-                if command == 'check':
+                if cmd == 3:
                     print('Write the ID please: ')
                     id = input()
                     check_transaction_blockchain(s, MINER_PORT, str(id))
-                if command == 'end':
-                    sys.exit()  
-                
+                if cmd == 4:
+                    sys.exit()
+                else:
+                    print('Good bye')
 
         except KeyboardInterrupt:
             print('Interrupt signal received, closing connections and freeing resources')

@@ -34,9 +34,8 @@ def mineBlock(transactions):
     global bc
     global bc_l
     nonce = 1
-    print(bc_l)
+
     if bc_l == 0 :
-        print('len = 0')
         while not bc.validProof(None, transactions, nonce, oneblock=True):
             nonce += 1
         bc.addBlock(bc.createBlock(nonce=nonce, previousHash=None, transactions=transactions))
@@ -45,15 +44,13 @@ def mineBlock(transactions):
             lastBlock = bc.last()
             lastBlockHash = lastBlock.getHash()
             nonce = 0
-            print('Previoushash', lastBlockHash)
             while not bc.validProof(lastBlockHash, transactions, nonce):
                 nonce += 1
             # Add reward
             #transactions.append(Transaction(time(), 'SYSTEM', ADDRESS_WALLET, 1))
             bc.addBlock(bc.createBlock(nonce=nonce, previousHash=lastBlockHash, transactions=transactions))
-            print('Here2')
     for tmp in transactions:
-        print('Transaction {} has been added to the block', format(tmp.hash()))
+        print('Transaction has been added to the block', tmp.hash())
     bc_l += 1
 
 def send_show_blockchain(s, port):
@@ -111,7 +108,6 @@ def broadcast_blockchain(s,blockchain,sender_port):
         'sender_port':sender_port
     })
     print('Broadcasting Blockchain')
-
     s.send(str.encode(message))
     s.close()
 
@@ -209,24 +205,18 @@ def handle_message(peers, server_port, message,s_sender):
             if i.hash()== transaction_tmp.hash():
                 transaction_in = True
         if transaction_in == False:
-            print('transaction in')
             transction_tbd.append(transaction_tmp)
             #we check if we have more than 3 transactions to be done:
-            print('length transactions:', transction_tbd)
             if(len(transction_tbd) >= 2 ):
                 # maybe we need lock
                 mine_list = transction_tbd[-2:]
                 transction_tbd = transction_tbd[:-2]
                 #threading.Thread(target=mineBlock([Transaction(time(), fromWallet, toWallet, amount)]), ).start()
                 mine_list_tmp = []
-                print('Mine list', mine_list)
-                print('Valid or not ? ')
+
                 for transaction_mine in mine_list:
-                    print(bc.validTransaction(transaction_mine))
                     if bc.validTransaction(transaction_mine):
                         mine_list_tmp.append(transaction_mine)
-                print('Valid transactions')
-                print(mine_list_tmp)
                 if (len(mine_list_tmp) > 0):
 
                     mineBlock(mine_list_tmp)
@@ -241,7 +231,6 @@ def handle_message(peers, server_port, message,s_sender):
     elif message_type == "init_bc":
         received_bc = message["blockchain"]
         bc = BlockChain(chain=received_bc['chain'])
-        print(bc.toString())
 
 
     elif message_type == 'broadcast_blockchain':
@@ -250,10 +239,6 @@ def handle_message(peers, server_port, message,s_sender):
         received_bc = BlockChain(chain=[Block(index=block['index'], nonce=block['nonce'], hash=block['hash'], previousHash=block['previousHash'], transactions=[Transaction(timestamp=transaction['timestamp'], fromWallet=transaction['fromWallet'], toWallet=transaction['toWallet'], transactionAmount=transaction['transactionAmount']) for transaction in block['transactions']]) for block in received_bc['chain']])
         if(received_bc.hash() !=bc.hash()):
 
-            print('Valid chain?:', received_bc.valid_chain())
-            print('Length received:', len(received_bc.chain))
-            print('Length actual:', len(bc.chain))
-            print('Received chain:\n', received_bc.toString())
             if received_bc.valid_chain() and len(received_bc.chain) > len(bc.chain):
                 print('New blockchain')
                 print(received_bc.toString())
@@ -272,16 +257,14 @@ def handle_message(peers, server_port, message,s_sender):
         #transaction_tmp = Transaction(timestamp=timestamp, fromWallet=int(fromWallet), toWallet=int(toWallet), transactionAmount=float(amount))
         block = bc.getBlock(id_transaction)
         block.calculateMerkleRoot()
-        print(block)
         if block is None:
             proof = MerkleProof(not_found=True)
         else:
-            print(block.describe())
             transaction_position = block.transactionIndex(id_transaction)
             proof = MerkleProof(root=block.merkleRoot,  hashList=block.merkleTree().get_proof(transaction_position))
 
         print('Proof:', proof.describe())
-        print(proof.inMerkleTree(transaction_position))
+        print('In Merkle Tree ? ', proof.inMerkleTree(transaction_position))
 
 
 #self.channel_manager.answer_message(channel, response_message)
