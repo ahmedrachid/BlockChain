@@ -256,12 +256,14 @@ def handle_message(peers, server_port, message,s_sender):
         id_transaction = message['id']
         #transaction_tmp = Transaction(timestamp=timestamp, fromWallet=int(fromWallet), toWallet=int(toWallet), transactionAmount=float(amount))
         block = bc.getBlock(id_transaction)
+        block.merkleTree()
         block.calculateMerkleRoot()
         if block is None:
             proof = MerkleProof(not_found=True)
         else:
             transaction_position = block.transactionIndex(id_transaction)
-            proof = MerkleProof(root=block.merkleRoot,  hashList=block.merkleTree().get_proof(transaction_position))
+            block_merkletree = block.merkletree
+            proof = MerkleProof(root=block.merkleRoot,  hashList=block_merkletree.get_proof(transaction_position))
 
         print('Proof:', proof.describe())
         print('In Merkle Tree ? ', proof.inMerkleTree(transaction_position))

@@ -58,10 +58,11 @@ class Block:
         tree = MerkleTools(hash_type="SHA256")
         tree.add_leaf([transaction.hash() for transaction in self.transactions], True)
         tree.make_tree()
+        self.merkletree = tree
         return tree
 
     def calculateMerkleRoot(self):
-        self.merkleRoot = self.merkleTree().get_merkle_root()
+        self.merkleRoot = self.merkletree.get_merkle_root()
 
     def transactionIndex(self, transaction):
 
