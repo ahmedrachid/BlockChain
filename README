@@ -6,12 +6,11 @@ Members :
 - Anes MEKKI             
 -------------------------
 
-How To Use:
-1- To start the miner you should execute: python miner.py
-2- 
-
 Our projects contains these classes:
 - class Miner
 - class Wallet
 - class Transaction
+- class Block
+- class BlockChain
 - class Wallet
+- class MerkleProof
